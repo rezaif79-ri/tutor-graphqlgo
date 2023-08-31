@@ -1,46 +1,28 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"os"
 
-	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/handler"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/rezaif79-ri/tutor1/graphqlgo/src/routers/graph"
 )
 
-var queryType = graphql.NewObject(graphql.ObjectConfig{
-	Name: "Query",
-	Fields: graphql.Fields{
-		"latestPost": &graphql.Field{
-			Type: graphql.String,
-			Args: map[string]*graphql.ArgumentConfig{},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return "Hello world!", nil
-			},
-		},
-	},
-})
-
-var Schema, _ = graphql.NewSchema(graphql.SchemaConfig{
-	Query: queryType,
-})
-
+// main is the entry point for the application.
 func main() {
-
-	// create a graphl-go HTTP handler with our previously defined schema
-	// and we also set it to return pretty JSON output
-	h := handler.New(&handler.Config{
-		Schema:   &Schema,
-		Pretty:   true,
-		GraphiQL: true,
-	})
-
-	// serve a GraphQL endpoint at `/graphql`
-	http.Handle("/graphql", h)
-
-	// and serve!
-	serverUrl := "127.0.0.1:8080"
-	fmt.Println("Server starting at ", serverUrl)
-	http.ListenAndServe(serverUrl, nil)
-
+	// gin setup
+	gin.SetMode(gin.ReleaseMode)
+	// create gin engine
+	router := gin.Default()
+	// enable cors
+	router.Use(cors.Default())
+	// create graphql endpoint
+	router.POST("/todo", graph.TodoGraphRouter)
+	// add webserver port
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	// start webserver
+	router.Run(":" + port)
 }
